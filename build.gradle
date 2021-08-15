@@ -4,15 +4,20 @@ plugins {
     id 'maven-publish'
 }
 
+java {
+    toolchain {
+        language = JavaLanguageVersion.of(16)
+    }
+}
+
 ext {
     def env = System.getenv()
     local = !env.GITHUB_ACTIONS
-    jdk = JavaVersion.current().getMajorVersion()
     branch = "git rev-parse --abbrev-ref HEAD".execute().text
 }
 
 group 'me.dreamhopping.pml'
-version "0.3.0${local ? "-local" : ""}${JavaVersion.current() != JavaVersion.VERSION_1_8 ? "+jdk.$jdk" : ""}"
+version "0.3.0${local ? "-local" : ""}"
 
 sourceSets {
     runtime {
