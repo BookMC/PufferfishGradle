@@ -1,13 +1,18 @@
 plugins {
     id 'java-gradle-plugin'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.21'
     id 'maven-publish'
 }
 
-sourceCompatibility = targetCompatibility = '1.8'
+ext {
+    def env = System.getenv()
+    local = !env.GITHUB_ACTIONS
+    jdk = JavaVersion.current().getMajorVersion()
+    branch = "git rev-parse --abbrev-ref HEAD".execute().text
+}
 
-if (group.isEmpty()) group 'me.dreamhopping.pml'
-if (version == 'unspecified') version '3.0.0'
+group 'me.dreamhopping.pml'
+version "0.3.0${local ? "-local" : ""}${JavaVersion.current() != JavaVersion.VERSION_1_8 ? "+jdk.$jdk" : ""}"
 
 sourceSets {
     runtime {
@@ -90,5 +95,35 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            def env = System.getenv()
+
+            boolean isEnvVarsAvailable = env.containsKey("MAVEN_USER") && env.containsKey("MAVEN_PASSWORD")
+
+            if (isEnvVarsAvailable) {
+                credentials {
+                    username env.get("MAVEN_USER")
+                    password env.get("MAVEN_PASSWORD")
+                }
+            }
+
+            url = local || !isEnvVarsAvailable ? "$buildDir/repository" : "https://maven.bookmc.org/releases/"
+        }
+    }
+
+    publications {
+        //noinspection GroovyAssignabilityCheck
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                name = "PufferfishGradle"
+                url = "https://github.com/BookMC/PufferfishGradle"
+            }
+        }
     }
 }

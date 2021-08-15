@@ -34,7 +34,7 @@ class McpMappingProvider(
 
         val csvZip = project.repoFile(MCP_GROUP, "mcp_$channel", "$version-$mcVersion", extension = "zip")
         download(
-            "https://files.minecraftforge.net/maven/${
+            "https://maven.minecraftforge.net/${
                 buildMavenPath(
                     MCP_GROUP,
                     "mcp_$channel",
@@ -63,7 +63,7 @@ class McpMappingProvider(
 
         val path = buildMavenPath(MCP_GROUP, "mcp", mcVersion, "srg", "zip")
         val srgZip = File(project.repoDir, path)
-        download("https://files.minecraftforge.net/maven/$path", srgZip)
+        download("https://maven.minecraftforge.net/$path", srgZip)
 
         ZipFile(srgZip).use { zip ->
             zip.getInputStream(zip.getEntry("joined.srg")).bufferedReader().use { reader ->
@@ -90,7 +90,7 @@ class McpMappingProvider(
 
         val path = buildMavenPath(MCP_GROUP, "mcp_config", mcVersion, extension = "zip")
         val mcpConfigZip = File(project.repoDir, path)
-        download("https://files.minecraftforge.net/maven/$path", mcpConfigZip)
+        download("https://maven.minecraftforge.net/$path", mcpConfigZip)
 
         ZipFile(mcpConfigZip).use { zip ->
             zip.getInputStream(zip.getEntry("config/joined.tsrg")).bufferedReader().use { reader ->
