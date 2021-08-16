@@ -201,7 +201,7 @@ object TargetConfigurator {
             // configurations quite a bit before this point, and doing it here ensures it does not get resolved accidentally.
             readOnlyProjects.add(project) // From this point on, changes to TargetData will not do anything.
 
-            val sourceSet = project.java.sourceSets.maybeCreate(target.sourceSetName)
+            val sourceSet = project.sourceSets.maybeCreate(target.sourceSetName)
 
             target.runDir.mkdirs()
             downloadAssets.configure { it.runDir = target.runDir }
@@ -271,7 +271,7 @@ object TargetConfigurator {
     private fun <T> TargetData.setUpRunTask(versionJson: VersionJson, task: T, client: Boolean)
             where T : IRunTask,
                   T : Task {
-        val set = task.project.java.sourceSets.maybeCreate(sourceSetName)
+        val set = task.project.sourceSets.maybeCreate(sourceSetName)
         if (client) task.dependsOn(extractNativesName, downloadAssetsName)
         task.dependsOn(set.classesTaskName)
         task.args = listOf()
@@ -319,7 +319,7 @@ object TargetConfigurator {
                 }.get()
 
             for (target in data.targets) {
-                sourceJar.from(project.java.sourceSets.maybeCreate(target.sourceSetName).allSource)
+                sourceJar.from(project.sourceSets.maybeCreate(target.sourceSetName).allSource)
             }
 
             project.extensions.findByType(PublishingExtension::class.java)?.let { publishData ->
@@ -333,7 +333,7 @@ object TargetConfigurator {
     }
 
     fun setUpJarTasks(project: Project, target: TargetData) {
-        val set = project.java.sourceSets.maybeCreate(target.sourceSetName)
+        val set = project.sourceSets.maybeCreate(target.sourceSetName)
         project.tasks.register(set.jarTaskName, Jar::class.java) {
             it.dependsOn(set.compileJavaTaskName, set.processResourcesTaskName)
             it.from(set.output)
@@ -350,7 +350,7 @@ object TargetConfigurator {
         }
 
         project.afterEvaluate {
-            val set = project.java.sourceSets.maybeCreate(target.sourceSetName)
+            val set = project.sourceSets.maybeCreate(target.sourceSetName)
 
             val task = project.tasks.getByName(set.processResourcesTaskName) as ProcessResources
             task.dependsOn(t.name)

@@ -25,10 +25,11 @@ abstract class RunTask : DefaultTask(), IRunTask {
     @Input
     override var runDir: String? = null
 
+    @Suppress("UnstableApiUsage")
     @TaskAction
     fun run() {
         project.javaexec {
-            it.main = mainClass
+            it.mainClass.set(mainClass)
             it.classpath = classpath
             it.args = args
             it.jvmArgs = vmArgs
