@@ -1,7 +1,7 @@
 plugins {
-    id 'java-gradle-plugin'
-    id 'org.jetbrains.kotlin.jvm' version '1.5.21'
-    id 'maven-publish'
+    id "java-gradle-plugin"
+    id "org.jetbrains.kotlin.jvm" version "1.5.21"
+    id "maven-publish"
 }
 
 java {
@@ -16,8 +16,8 @@ ext {
     branch = "git rev-parse --abbrev-ref HEAD".execute().text
 }
 
-group 'me.dreamhopping.pml'
-version "0.3.0${local ? "-local" : ""}"
+group "me.dreamhopping.pml"
+version "0.3.1${local ? "-local" : ""}"
 
 sourceSets {
     runtime {
@@ -28,21 +28,20 @@ sourceSets {
 repositories {
     mavenCentral()
     maven {
-        url 'https://maven.fabricmc.net'
+        url "https://maven.fabricmc.net"
     }
-    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.0"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     implementation gradleApi()
-    implementation 'com.google.code.gson:gson:2.8.5'
-    implementation 'org.ow2.asm:asm-tree:9.0'
-    implementation 'org.ow2.asm:asm-commons:9.0'
-    compileOnly 'net.fabricmc:fabric-fernflower:1.3.0'
+    implementation "com.google.code.gson:gson:2.8.7"
+    implementation "org.ow2.asm:asm-tree:9.2"
+    implementation "org.ow2.asm:asm-commons:9.2"
+    compileOnly "net.fabricmc:fabric-fernflower:1.3.0"
     implementation sourceSets.runtime.runtimeClasspath
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 test {
@@ -51,25 +50,25 @@ test {
 
 task runtimeJar(type: Jar, dependsOn: runtimeClasses) {
     from sourceSets.runtime.output
-    classifier 'runtime'
+    classifier "runtime"
     manifest.attributes(
-            'Implementation-Version': project.version
+            "Implementation-Version": project.version
     )
 }
 
 task runtimeSourcesJar(type: Jar) {
-    dependsOn 'classes', 'runtimeClasses'
+    dependsOn "classes", "runtimeClasses"
     from sourceSets.runtime.allSource
-    classifier 'runtime-sources'
+    classifier "runtime-sources"
 }
 
 jar {
-    dependsOn 'runtimeJar', 'runtimeSourcesJar'
+    dependsOn "runtimeJar", "runtimeSourcesJar"
     from sourceSets.main.output, sourceSets.runtime.output
     manifest.attributes(
-            'Implementation-Vendor': project.group,
-            'Implementation-Version': project.version,
-            'Implementation-Title': project.name
+            "Implementation-Vendor": project.group,
+            "Implementation-Version": project.version,
+            "Implementation-Title": project.name
     )
     from project.tasks.runtimeJar, project.tasks.runtimeSourcesJar
 }
@@ -86,8 +85,8 @@ artifacts {
 gradlePlugin {
     plugins {
         pufferfishGradle {
-            id = 'me.dreamhopping.pml.gradle'
-            implementationClass = 'me.dreamhopping.pml.gradle.PufferfishGradle'
+            id = "me.dreamhopping.pml.gradle"
+            implementationClass = "me.dreamhopping.pml.gradle.PufferfishGradle"
         }
     }
 }
