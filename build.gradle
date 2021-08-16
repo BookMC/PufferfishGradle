@@ -17,7 +17,7 @@ ext {
 }
 
 group "me.dreamhopping.pml"
-version "0.3.1${local ? "-local" : ""}"
+version "3.0.0${local ? "-local" : ""}"
 
 sourceSets {
     runtime {
