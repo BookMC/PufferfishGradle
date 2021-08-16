@@ -221,12 +221,12 @@ object TargetConfigurator {
             if (!rtFile.exists()) {
                 rtFile.parentFile?.mkdirs()
                 javaClass.getResourceAsStream("/$rtArtifact-$rtVersion-runtime.jar")
-                    .use { rtFile.outputStream().use { out -> it.copyTo(out) } }
+                    .use { rtFile.outputStream().use { out -> it?.copyTo(out) ?: error("Failed to copy runtime") } }
             }
             if (!rtSourcesFile.exists()) {
                 rtSourcesFile.parentFile?.mkdirs()
                 javaClass.getResourceAsStream("/$rtArtifact-$rtVersion-runtime-sources.jar")
-                    .use { rtSourcesFile.outputStream().use { out -> it.copyTo(out) } }
+                    .use { rtSourcesFile.outputStream().use { out -> it?.copyTo(out) ?: error("Failed to copy runtime-sources") } }
             }
 
             val t = project.tasks.getByName(sourceSet.compileJavaTaskName)
@@ -269,8 +269,8 @@ object TargetConfigurator {
     }
 
     private fun <T> TargetData.setUpRunTask(versionJson: VersionJson, task: T, client: Boolean)
-            where T : IRunTask,
-                  T : Task {
+        where T : IRunTask,
+              T : Task {
         val set = task.project.sourceSets.maybeCreate(sourceSetName)
         if (client) task.dependsOn(extractNativesName, downloadAssetsName)
         task.dependsOn(set.classesTaskName)
@@ -343,6 +343,7 @@ object TargetConfigurator {
         project.tasks.getByName("assemble").dependsOn(set.jarTaskName)
     }
 
+    @Suppress("UnstableApiUsage")
     fun setUpLoaderTasks(project: Project, target: TargetData) {
         val t = project.tasks.register(target.createClassPathInfoName, CreateClassPathInfoTask::class.java) {
             it.classpath = project.configurations.getByName(target.mcLibsConfigName)
