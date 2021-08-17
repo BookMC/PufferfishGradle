@@ -55,11 +55,6 @@ public class Start {
             addArgument(arguments.getLiteralArguments(), "--uuid", shouldAuthenticate, uuid);
             addArgument(arguments.getLiteralArguments(), "--accessToken", shouldAuthenticate, accessToken);
             addArgument(arguments.getLiteralArguments(), "--userProperties", () -> "{}");
-
-            if (!shouldAuthenticate && !arguments.getLiteralArguments().contains("--demo")) {
-                // If user doesn't want to authenticate or doesn't own the game, go into demo.
-                arguments.getLiteralArguments().add("--demo");
-            }
         }
 
         String mainClass = System.getenv("PG_MAIN_CLASS");
