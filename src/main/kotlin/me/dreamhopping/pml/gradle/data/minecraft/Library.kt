@@ -14,7 +14,7 @@ data class Library(val name: String, val natives: Map<String, String>?, val rule
     fun addToDependencies(project: Project, configName: String) {
         if (natives != null) {
             val os = arrayOf("windows", "osx", "linux")
-                .find { it.startsWith(System.getProperty("os.name"), true) }
+                .find { System.getProperty("os.name").startsWith("windows", true) }
                 ?: return
 
             getNative(os)?.let { project.dependencies.add(configName, "$name:$it") }
