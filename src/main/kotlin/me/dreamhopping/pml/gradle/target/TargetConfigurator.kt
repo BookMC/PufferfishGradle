@@ -49,14 +49,14 @@ object TargetConfigurator {
 
         val versionJson = project.dataFile(target.versionJsonPath)
         if (!versionJson.exists()) {
-            download(project.getVersionJsonUrl(target.version), versionJson)
+            download(project.getVersionJsonUrl(target.version, target.type), versionJson)
         }
         val version = try {
             versionJson.fromJson<VersionJson>()
         } catch (ex: JsonParseException) {
             // Version JSON is corrupted - redownload and try again.
             download(project.getVersionJsonUrl(target.version), versionJson, ignoreInitialState = true)
-            versionJson.fromJson<VersionJson>()
+            versionJson.fromJson()
         }
 
         assert(version.id == target.version)
@@ -226,7 +226,10 @@ object TargetConfigurator {
             if (!rtSourcesFile.exists()) {
                 rtSourcesFile.parentFile?.mkdirs()
                 javaClass.getResourceAsStream("/$rtArtifact-$rtVersion-runtime-sources.jar")
-                    .use { rtSourcesFile.outputStream().use { out -> it?.copyTo(out) ?: error("Failed to copy runtime-sources") } }
+                    .use {
+                        rtSourcesFile.outputStream()
+                            .use { out -> it?.copyTo(out) ?: error("Failed to copy runtime-sources") }
+                    }
             }
 
             val t = project.tasks.getByName(sourceSet.compileJavaTaskName)
@@ -377,24 +380,24 @@ object TargetConfigurator {
         }
     }
 
-    private fun Project.getVersionJsonUrl(version: String): String {
+    private fun Project.getVersionJsonUrl(version: String, type: String? = null): String {
         val manifestFile = dataFile(VERSION_MANIFEST_PATH)
         if (!manifestFile.exists()) manifestFile.redownloadVersionManifest()
         return try {
-            manifestFile.findVersionJsonUrl(version)
+            manifestFile.findVersionJsonUrl(version, type)
         } catch (ex: JsonParseException) {
             null
         } ?: manifestFile.let {
             // Manifest file is corrupted or not up-to-date - redownload and try again.
             it.redownloadVersionManifest()
-            it.findVersionJsonUrl(version)
+            it.findVersionJsonUrl(version, type)
         }
         ?: error("Invalid version $version")
     }
 
-    private fun File.findVersionJsonUrl(version: String) =
+    private fun File.findVersionJsonUrl(version: String, releaseType: String?) =
         fromJson<JsonObject>()["versions"].asJsonArray.map { it.asJsonObject }
-            .find { it["id"].asString == version }
+            .find { it["id"].asString == version && releaseType?.let { r -> it["type"].asString == r } ?: true }
             ?.let { it["url"].asString }
 
     private fun File.redownloadVersionManifest() = download(VERSION_MANIFEST_URL, this, ignoreInitialState = true)

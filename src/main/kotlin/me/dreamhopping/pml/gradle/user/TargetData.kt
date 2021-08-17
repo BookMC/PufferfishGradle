@@ -21,6 +21,10 @@ class TargetData(val project: Project, val version: String) {
     var clientArgs = arrayListOf<String>()
     var serverArgs = arrayListOf<String>()
 
+    // Availabe types old_beta, old_alpha, snapshot, release
+    // used for resolution of the version manifest
+    var type: String? = null
+
     fun accessTransformer(file: Any) {
         accessTransformers.add(project.file(file).absoluteFile)
     }
