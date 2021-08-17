@@ -5,8 +5,8 @@ data class Rule(val action: String, val os: Os?) {
 
     data class Os(val name: String?) {
         fun appliesTo(os: String): Boolean {
-            if (name != null && name != os) return false
-            return true
+            if (name == null) return false
+            return name.startsWith(os, true)
         }
     }
 }
