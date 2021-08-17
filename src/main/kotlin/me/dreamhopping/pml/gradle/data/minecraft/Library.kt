@@ -17,7 +17,9 @@ data class Library(val name: String, val natives: Map<String, String>?, val rule
                 .find { System.getProperty("os.name").startsWith("windows", true) }
                 ?: return
 
-            getNative(os)?.let { project.dependencies.add(configName, "$name:$it") }
+            if (allowed(os)) {
+                getNative(os)?.let { project.dependencies.add(configName, "$name:$it") }
+            }
         } else {
             project.dependencies.add(configName, name)
         }
