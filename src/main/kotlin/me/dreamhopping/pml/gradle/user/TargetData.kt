@@ -1,5 +1,6 @@
 package me.dreamhopping.pml.gradle.user
 
+import me.dreamhopping.pml.gradle.mappings.LeatherMappingProvider
 import me.dreamhopping.pml.gradle.mappings.MappingProvider
 import me.dreamhopping.pml.gradle.mappings.McpMappingProvider
 import me.dreamhopping.pml.gradle.mappings.YarnMappingProvider
@@ -57,5 +58,10 @@ class TargetData(val project: Project, val version: String) {
     @JvmOverloads
     fun yarn(version: String? = null) {
         mappings.add(YarnMappingProvider(version, project, this.version))
+    }
+    
+    @JvmOverloads
+    fun leather(version: String? = null) {
+        mappings.add(LeatherMappingProvider(version, project, this.version))
     }
 }

@@ -3,6 +3,7 @@ package me.dreamhopping.pml.gradle.target
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
 import me.dreamhopping.pml.gradle.data.minecraft.VersionJson
+import me.dreamhopping.pml.gradle.mappings.LeatherMappingProvider.Companion.isLeatherAvailable
 import me.dreamhopping.pml.gradle.mappings.McpMappingProvider.Companion.isMcpAvailable
 import me.dreamhopping.pml.gradle.mappings.YarnMappingProvider.Companion.isYarnAvailable
 import me.dreamhopping.pml.gradle.target.ArtifactVersionGenerator.buildMappedJarArtifactVersion
@@ -40,10 +41,10 @@ object TargetConfigurator {
         if (parent.loader) setUpLoaderTasks(project, target)
 
         if (addDefaultMaps) {
-            if (project.isYarnAvailable(target.version)) {
-                target.yarn()
-            } else if (project.isMcpAvailable(target.version)) {
-                target.mcp()
+            when {
+                project.isLeatherAvailable(target.version) -> target.leather()
+                project.isYarnAvailable(target.version) -> target.yarn()
+                project.isMcpAvailable(target.version) -> target.mcp()
             }
         }
 
