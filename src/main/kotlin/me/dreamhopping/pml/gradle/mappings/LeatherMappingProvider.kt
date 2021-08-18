@@ -30,7 +30,7 @@ class LeatherMappingProvider(
 
         val path = buildMavenPath("org.bookmc", "leather", version)
         val mapZip = File(project.repoDir, path)
-        download("https://mappings.bookmc.org/v1/versions/$minecraftVersion/$version/download", mapZip)
+        download("https://metadata.bookmc.org/v1/mappings/$minecraftVersion/$version/download", mapZip)
 
         haveMappingsBeenLoaded = true
         ZipFile(mapZip).use { zip ->
@@ -48,10 +48,10 @@ class LeatherMappingProvider(
         }
     }
 
-    private fun getVersion(project: Project, minecraftVersion: String) = version ?: project.getLatestVersion(minecraftVersion) ?: error("No Yarn versions for $minecraftVersion")
+    private fun getVersion(project: Project, minecraftVersion: String) = version ?: project.getLatestVersion(minecraftVersion) ?: error("No Leather versions for $minecraftVersion")
 
     companion object {
-        private val String.versionsUrl get() = "https://mappings.bookmc.org/v1/versions/$this"
+        private val String.versionsUrl get() = "https://metadata.bookmc.org/v1/mappings/$this"
 
         fun Project.isLeatherAvailable(mcVersion: String) = getLatestVersion(mcVersion) != null
 
