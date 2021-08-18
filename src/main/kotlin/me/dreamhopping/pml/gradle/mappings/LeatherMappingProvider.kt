@@ -40,8 +40,8 @@ class LeatherMappingProvider(
                     val parts = line.split(" ", "\t")
                     when (parts[0]) {
                         "CLASS" -> mappings.classes[parts[1]] = parts[2]
-                        "METHOD" -> mappings.methods["${parts[1]}/${parts[2]}${parts[2]}"] = parts[4]
-                        "FIELD" -> mappings.fields["${parts[1]}/${parts[2]}"] = parts[4]
+                        "METHOD" -> mappings.methods["${parts[1]}/${parts[3]}${parts[2]}"] = parts[4]
+                        "FIELD" -> mappings.fields["${parts[1]}/${parts[3]}"] = parts[4]
                     }
                 }
             }
