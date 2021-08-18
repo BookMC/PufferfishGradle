@@ -69,7 +69,7 @@ class LeatherMappingProvider(
             return toLatestVersion()
         }
 
-        private fun File.toLatestVersion() = fromJson<LeatherMappings>().latest
+        private fun File.toLatestVersion() = fromJson<LeatherMappings>().latest?.version
 
         private fun File.downloadVersionInfo(mcVersion: String) {
             download(mcVersion.versionsUrl, this, ignoreInitialState = true)
