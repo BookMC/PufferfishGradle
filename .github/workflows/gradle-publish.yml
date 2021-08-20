@@ -22,13 +22,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew publish
+        run: ./gradlew publish commitWebhook
         env:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-      - name: Discord Webhook Action
-        uses: tsickert/discord-webhook@v3.0.0
-        with:
-          webhook-url: ${{ secrets.WEBHOOK_URL }}
-          raw-data: .github/discord/webhook.json
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
 
