@@ -14,10 +14,11 @@ ext {
     def env = System.getenv()
     local = !env.GITHUB_ACTIONS
     branch = "git rev-parse --abbrev-ref HEAD".execute().text
+    buildNumber = env.BUILD_NUMBER
 }
 
 group "me.dreamhopping.pml"
-version "3.1.7${local ? "-local" : ""}"
+version "3.1.7+${buildNumber ? buildNumber : "local"}"
 
 sourceSets {
     runtime {
