@@ -243,7 +243,7 @@ object TargetConfigurator {
             )
             project.dependencies.add(sourceSet.implementationConfigurationName, parent.mainSourceSet.runtimeClasspath)
 
-            val loaderConfig = project.configurations.maybeCreate("loader")
+            val loaderConfig = project.configurations.maybeCreate(LOADER_CONFIG)
             val implementationConfig = project.configurations.getByName(sourceSet.implementationConfigurationName)
 
             loaderConfig.dependencies.forEach {
@@ -298,7 +298,7 @@ object TargetConfigurator {
     }
 
     fun setUpGlobalTasks(project: Project, data: UserData) {
-        val loaderConfig = project.configurations.maybeCreate("loader")
+        val loaderConfig = project.configurations.maybeCreate(LOADER_CONFIG)
         val setupTask = project.tasks.register("setup") {
             it.group = "minecraft"
         }
