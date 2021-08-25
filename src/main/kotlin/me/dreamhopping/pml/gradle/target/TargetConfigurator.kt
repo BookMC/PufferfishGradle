@@ -132,6 +132,18 @@ object TargetConfigurator {
                 )
             }
 
+        project.tasks.register(target.reverseGenerateMappingsName, GenerateMappingsTask::class.java) {
+            it.mappingProviders = target.mappings
+            it.reverse = true
+            it.outputFile = project.repoFile(
+                "net.minecraft",
+                "mapped",
+                target.buildMappedJarArtifactVersion(),
+                "mappings-reversed",
+                "json"
+            )
+        }
+
         val deobfuscateTask = project.tasks.register(target.deobfuscateName, ApplyMappingsTask::class.java) {
             it.dependsOn(generateMappingsTask.name, mergeClassesTask?.name ?: stripClientTask.name)
             it.inputJar = mergeClassesTask?.get()?.outputJar ?: stripClientTask.get().classOutput
@@ -276,6 +288,7 @@ object TargetConfigurator {
         where T : IRunTask,
               T : Task {
         val set = task.project.sourceSets.maybeCreate(sourceSetName)
+
         if (client) task.dependsOn(extractNativesName, downloadAssetsName)
         task.dependsOn(set.classesTaskName)
         task.args = listOf()
@@ -338,12 +351,25 @@ object TargetConfigurator {
 
     fun setUpJarTasks(project: Project, target: TargetData) {
         val set = project.sourceSets.maybeCreate(target.sourceSetName)
+
+        project.tasks.register("reobf${set.jarTaskName}", ApplyMappingsTask::class.java) {
+            it.group = "build"
+            it.dependsOn(set.jarTaskName, target.reverseGenerateMappingsName)
+            it.inputJar = (project.tasks.getByName(set.jarTaskName) as Jar).archiveFile.get().asFile
+            it.accessTransformers = setOf()
+            it.mappings = (project.tasks.getByName(target.reverseGenerateMappingsName) as GenerateMappingsTask).outputFile
+            it.outputJar = File(it.temporaryDir, it.inputJar!!.name)
+        }
+
         project.tasks.register(set.jarTaskName, Jar::class.java) {
             it.dependsOn(set.compileJavaTaskName, set.processResourcesTaskName)
+            it.finalizedBy("reobf${set.jarTaskName}")
             it.from(set.output)
+            it.from(project.sourceSets.getByName("main").output)
             it.archiveClassifier.set(set.name)
             it.group = "build"
         }
+
         project.tasks.getByName("assemble").dependsOn(set.jarTaskName)
     }
 
@@ -374,6 +400,10 @@ object TargetConfigurator {
         project.tasks.findByName(target.generateMappingsName)?.let {
             it as GenerateMappingsTask
             it.outputFile = project.repoFile("net.minecraft", "mapped", version, "mappings", "json")
+        }
+        project.tasks.findByName(target.reverseGenerateMappingsName)?.let {
+            it as GenerateMappingsTask
+            it.outputFile = project.repoFile("net.minecraft", "mapped", version, "mappings-reversed", "json")
         }
         project.tasks.findByName(target.deobfuscateName)?.let {
             it as ApplyMappingsTask
@@ -415,6 +445,7 @@ object TargetConfigurator {
     private val TargetData.mergeClassesName get() = "mergeClasses$version"
     private val TargetData.mergeResourcesName get() = "mergeResources$version"
     private val TargetData.generateMappingsName get() = "generateMappings$version"
+    private val TargetData.reverseGenerateMappingsName get() = "reverseGenerateMappings$version"
     private val TargetData.deobfuscateName get() = "deobfuscate$version"
     private val TargetData.setupName get() = "setup$version"
     private val VersionJson.downloadAssetIndexName get() = "downloadAssetIndex$assets"

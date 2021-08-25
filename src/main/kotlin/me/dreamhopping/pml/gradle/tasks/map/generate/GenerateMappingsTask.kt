@@ -18,6 +18,9 @@ abstract class GenerateMappingsTask : DefaultTask() {
     @OutputFile
     var outputFile: File? = null
 
+    @Input
+    var reverse: Boolean = false
+
     @Inject
     abstract fun getWorkerExecutor(): WorkerExecutor
 
@@ -26,6 +29,7 @@ abstract class GenerateMappingsTask : DefaultTask() {
         getWorkerExecutor().noIsolation().submit(GenerateMappingsAction::class.java) { params ->
             params.output.set(outputFile)
             params.mappings.set(getMappings())
+            params.reverse.set(reverse)
         }
     }
 }

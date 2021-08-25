@@ -8,6 +8,7 @@ abstract class GenerateMappingsAction : WorkAction<GenerateMappingsParameters> {
     override fun execute() {
         val mappings = parameters.mappings.get()
         val output = parameters.output.asFile.get()
+        val reverse = parameters.reverse.get()
 
         val maps = Mappings(linkedMapOf(), linkedMapOf(), linkedMapOf(), linkedMapOf())
 
@@ -16,6 +17,10 @@ abstract class GenerateMappingsAction : WorkAction<GenerateMappingsParameters> {
             maps.fields += it.fields
             maps.methods += it.methods
             maps.locals += it.locals
+        }
+
+        if (reverse) {
+            maps.reverse()
         }
 
         output.parentFile?.mkdirs()
