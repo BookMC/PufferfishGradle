@@ -10,6 +10,7 @@ import me.dreamhopping.pml.gradle.target.ArtifactVersionGenerator.buildMappedJar
 import me.dreamhopping.pml.gradle.tasks.download.DownloadTask
 import me.dreamhopping.pml.gradle.tasks.download.assets.DownloadAssetsTask
 import me.dreamhopping.pml.gradle.tasks.loader.CreateClassPathInfoTask
+import me.dreamhopping.pml.gradle.tasks.map.apply.ApplyMappingsJarTask
 import me.dreamhopping.pml.gradle.tasks.map.apply.ApplyMappingsTask
 import me.dreamhopping.pml.gradle.tasks.map.generate.GenerateMappingsTask
 import me.dreamhopping.pml.gradle.tasks.merge.MergeTask
@@ -277,6 +278,7 @@ object TargetConfigurator {
                     for (publication in publishData.publications) {
                         if (publication is MavenPublication) {
                             publication.artifact(project.tasks.getByName(sourceSet.jarTaskName))
+                            publication.artifact(project.tasks.getByName("reobf${sourceSet.jarTaskName}"))
                         }
                     }
                 }
@@ -352,13 +354,14 @@ object TargetConfigurator {
     fun setUpJarTasks(project: Project, target: TargetData) {
         val set = project.sourceSets.maybeCreate(target.sourceSetName)
 
-        project.tasks.register("reobf${set.jarTaskName}", ApplyMappingsTask::class.java) {
+        project.tasks.register("reobf${set.jarTaskName}", ApplyMappingsJarTask::class.java) {
             it.group = "build"
             it.dependsOn(set.jarTaskName, target.reverseGenerateMappingsName)
             it.inputJar = (project.tasks.getByName(set.jarTaskName) as Jar).archiveFile.get().asFile
             it.accessTransformers = setOf()
-            it.mappings = (project.tasks.getByName(target.reverseGenerateMappingsName) as GenerateMappingsTask).outputFile
-            it.outputJar = File(it.temporaryDir, it.inputJar!!.name)
+            it.mappings =
+                (project.tasks.getByName(target.reverseGenerateMappingsName) as GenerateMappingsTask).outputFile
+            it.archiveClassifier.set(set.name)
         }
 
         project.tasks.register(set.jarTaskName, Jar::class.java) {
@@ -366,7 +369,7 @@ object TargetConfigurator {
             it.finalizedBy("reobf${set.jarTaskName}")
             it.from(set.output)
             it.from(project.sourceSets.getByName("main").output)
-            it.archiveClassifier.set(set.name)
+            it.archiveClassifier.set("unmapped-${set.name}")
             it.group = "build"
         }
 
