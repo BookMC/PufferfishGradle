@@ -7,4 +7,5 @@ import java.io.Serializable
 interface MappingProvider {
     val id: String
     val mappings: Mappings
+    val mixinMappings: Mappings
 }

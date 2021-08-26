@@ -20,7 +20,14 @@ class McpMappingProvider(
             if (!haveMappingsBeenLoaded) load(project, minecraftVersion)
             return field
         }
+    override val mixinMappings = Mappings.mappings { }
+        get() {
+            if (!haveMixinMappingsBeenLoaded) loadMixin(project, minecraftVersion)
+            return field
+        }
+
     private var haveMappingsBeenLoaded = false
+    private var haveMixinMappingsBeenLoaded = false
 
     init {
         val (ch, verInfo) = getMappingVersions(project, minecraftVersion)
@@ -112,6 +119,84 @@ class McpMappingProvider(
             }
         }
     }
+
+    private fun loadMixin(project: Project, minecraftVersion: String) {
+        val (channel, versionInfo) = getMappingVersions(project, minecraftVersion)
+        val (version, mcVersion) = versionInfo
+
+        val csvZip = project.repoFile(MCP_GROUP, "mcp_$channel", "$version-$mcVersion", extension = "zip")
+        download(
+            "https://maven.minecraftforge.net/${
+                buildMavenPath(
+                    MCP_GROUP,
+                    "mcp_$channel",
+                    "$version-$mcVersion",
+                    extension = "zip"
+                )
+            }",
+            csvZip
+        )
+
+        val parts = mcVersion.split(".")
+        val is13 = parts.size < 2 || parts[1].toIntOrNull()?.let { it < 13 } != true
+
+        haveMixinMappingsBeenLoaded = true
+
+        if (!is13) {
+            loadSrgMixin(project, mcVersion)
+        } else {
+            loadMcpConfigMixin(project, mcVersion, csvZip)
+        }
+    }
+
+    private fun loadSrgMixin(project: Project, mcVersion: String) {
+        val path = buildMavenPath(MCP_GROUP, "mcp", mcVersion, "srg", "zip")
+        val srgZip = File(project.repoDir, path)
+        download("https://maven.minecraftforge.net/$path", srgZip)
+
+        ZipFile(srgZip).use { zip ->
+            zip.getInputStream(zip.getEntry("joined.srg")).bufferedReader().use { reader ->
+                for (line in reader.lines()) {
+                    val parts = line.split(" ")
+                    when (parts[0]) {
+                        "CL:" -> mappings.classes[parts[1]] = parts[2]
+                        "FD:" -> mappings.fields[parts[1]] = parts[2]
+                        "MD:" -> mappings.methods["${parts[1]}${parts[2]}"] = parts[3] + " " + parts[4]
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadMcpConfigMixin(project: Project, mcVersion: String, csv: File) {
+        val (fields, methodInfo) = csv.loadCsvData()
+        val (methods, _) = methodInfo
+
+        val path = buildMavenPath(MCP_GROUP, "mcp_config", mcVersion, extension = "zip")
+        val mcpConfigZip = File(project.repoDir, path)
+        download("https://maven.minecraftforge.net/$path", mcpConfigZip)
+
+        ZipFile(mcpConfigZip).use { zip ->
+            zip.getInputStream(zip.getEntry("config/joined.tsrg")).bufferedReader().use { reader ->
+                var currentClass = ""
+                for (line in reader.lines()) {
+                    if (line.startsWith('\t') || line.startsWith(' ')) {
+                        val parts = line.trim().split(" ")
+                        if (parts.size == 3) {
+                            mappings.methods["$currentClass/${parts[0]}${parts[1]}"] = methods[parts[2]] ?: parts[2]
+                        } else {
+                            mappings.fields["$currentClass/${parts[0]}"] = "$currentClass/${parts[1]}"
+                        }
+                    } else {
+                        val parts = line.split(" ")
+                        currentClass = parts[0]
+                        mappings.classes[parts[0]] = parts[1]
+                    }
+                }
+            }
+        }
+    }
+
 
     private fun String.extractName(csv: Map<String, String>) = substringAfterLast('/').let { csv[it] ?: it }
 

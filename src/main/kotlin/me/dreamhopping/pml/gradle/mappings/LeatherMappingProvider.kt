@@ -13,12 +13,18 @@ class LeatherMappingProvider(
     private val minecraftVersion: String
 ) : MappingProvider {
     override val id get() = "leather-$version"
-    override val mappings = Mappings.mappings {  }
+    override val mappings = Mappings.mappings { }
         get() {
             if (!haveMappingsBeenLoaded) load(project, minecraftVersion)
             return field
         }
+    override val mixinMappings: Mappings = Mappings.mappings { }
+        get() {
+            if (!haveMixinMappingsBeenLoaded) loadMixin(project, minecraftVersion)
+            return field
+        }
 
+    private var haveMixinMappingsBeenLoaded = false
     private var haveMappingsBeenLoaded = false
 
     init {
@@ -48,7 +54,40 @@ class LeatherMappingProvider(
         }
     }
 
-    private fun getVersion(project: Project, minecraftVersion: String) = version ?: project.getLatestVersion(minecraftVersion) ?: error("No Leather versions for $minecraftVersion")
+    private fun loadMixin(project: Project, minecraftVersion: String) {
+        val version = getVersion(project, minecraftVersion)
+
+        val path = buildMavenPath("org.bookmc", "leather", version)
+        val mapZip = File(project.repoDir, path)
+        download("https://metadata.bookmc.org/v1/mappings/$minecraftVersion/$version/download", mapZip)
+
+        haveMixinMappingsBeenLoaded = true
+        ZipFile(mapZip).use { zip ->
+            val entry = zip.getEntry("mappings/mapping.tiny")
+            val (from, to) = zip.getInputStream(entry).use { fromTo(it) }
+
+            zip.getInputStream(entry).bufferedReader().use { reader ->
+                val tree = parseTree(reader)
+
+                for (clazz in tree.classes) {
+                    val fromClass = clazz.getName(from)
+                    val toClass = clazz.getName(to)
+
+                    mixinMappings.classes[toClass] = fromClass
+
+                    for (method in clazz.methods) {
+                        mixinMappings.methods["$toClass/${method.getName(to)} ${method.getDescriptor(to)}"] = "$fromClass/${method.getName(from)} ${method.getDescriptor(from)}"
+                    }
+                    for (field in clazz.fields) {
+                        mixinMappings.methods["$toClass/${field.getName(to)} ${field.getDescriptor(to)}"] = "$fromClass/${field.getName(from)} ${field.getDescriptor(from)}"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getVersion(project: Project, minecraftVersion: String) =
+        version ?: project.getLatestVersion(minecraftVersion) ?: error("No Leather versions for $minecraftVersion")
 
     companion object {
         private val String.versionsUrl get() = "https://metadata.bookmc.org/v1/mappings/$this"

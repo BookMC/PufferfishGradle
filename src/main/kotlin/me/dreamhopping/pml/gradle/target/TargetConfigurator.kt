@@ -145,6 +145,18 @@ object TargetConfigurator {
             )
         }
 
+        project.tasks.register(target.generateMixinMappingsName, GenerateMappingsTask::class.java) {
+            it.mappingProviders = target.mappings
+            it.mixin = true
+            it.outputFile = project.repoFile(
+                "net.minecraft",
+                "mapped",
+                target.buildMappedJarArtifactVersion(),
+                "mappings-mixin",
+                "json"
+            )
+        }
+
         val deobfuscateTask = project.tasks.register(target.deobfuscateName, ApplyMappingsTask::class.java) {
             it.dependsOn(generateMappingsTask.name, mergeClassesTask?.name ?: stripClientTask.name)
             it.inputJar = mergeClassesTask?.get()?.outputJar ?: stripClientTask.get().classOutput
@@ -449,6 +461,7 @@ object TargetConfigurator {
     private val TargetData.mergeResourcesName get() = "mergeResources$version"
     private val TargetData.generateMappingsName get() = "generateMappings$version"
     private val TargetData.reverseGenerateMappingsName get() = "reverseGenerateMappings$version"
+    private val TargetData.generateMixinMappingsName get() = "generateMixinMappings$version"
     private val TargetData.deobfuscateName get() = "deobfuscate$version"
     private val TargetData.setupName get() = "setup$version"
     private val VersionJson.downloadAssetIndexName get() = "downloadAssetIndex$assets"

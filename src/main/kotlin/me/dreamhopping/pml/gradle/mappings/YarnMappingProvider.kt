@@ -18,8 +18,14 @@ class YarnMappingProvider(
             if (!haveMappingsBeenLoaded) load(project, minecraftVersion)
             return field
         }
+    override val mixinMappings = Mappings.mappings {  }
+        get() {
+            if (!haveMixinMappingsBeenLoaded) loadMixin(project, minecraftVersion)
+            return field
+        }
 
     private var haveMappingsBeenLoaded = false
+    private var haveMixinMappingsBeenLoaded = false
 
     init {
         version = getVersion(project, minecraftVersion)
@@ -43,6 +49,38 @@ class YarnMappingProvider(
                         "CLASS" -> mappings.classes[parts[1]] = parts[3]
                         "METHOD" -> mappings.methods["${parts[1]}/${parts[3]}${parts[2]}"] = parts[5]
                         "FIELD" -> mappings.fields["${parts[1]}/${parts[3]}"] = parts[5]
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadMixin(project: Project, minecraftVersion: String) {
+        val version = getVersion(project, minecraftVersion)
+
+        val path = buildMavenPath("net.fabricmc", "yarn", version)
+        val mapZip = File(project.repoDir, path)
+        download("https://maven.fabricmc.net/$path", mapZip)
+
+        haveMixinMappingsBeenLoaded = true
+        ZipFile(mapZip).use { zip ->
+            val entry = zip.getEntry("mappings/mappings.tiny")
+            val (from, to) = zip.getInputStream(entry).use { fromTo(it) }
+
+            zip.getInputStream(entry).bufferedReader().use { reader ->
+                val tree = parseTree(reader)
+
+                for (clazz in tree.classes) {
+                    val fromClass = clazz.getName(from)
+                    val toClass = clazz.getName(to)
+
+                    mixinMappings.classes[toClass] = fromClass
+
+                    for (method in clazz.methods) {
+                        mixinMappings.methods["$toClass/${method.getName(to)} ${method.getDescriptor(to)}"] = "$fromClass/${method.getName(from)} ${method.getDescriptor(from)}"
+                    }
+                    for (field in clazz.fields) {
+                        mixinMappings.fields["$toClass/${field.getName(to)} ${field.getDescriptor(to)}"] = "$fromClass/${field.getName(from)} ${field.getDescriptor(from)}"
                     }
                 }
             }

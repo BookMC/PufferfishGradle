@@ -15,11 +15,17 @@ abstract class GenerateMappingsTask : DefaultTask() {
     @Input
     fun getMappings() = mappingProviders?.map { it.mappings }
 
+    @Input
+    fun getMappingsMixin() = mappingProviders?.map { it.mixinMappings }
+
     @OutputFile
     var outputFile: File? = null
 
     @Input
     var reverse: Boolean = false
+
+    @Input
+    var mixin: Boolean = false
 
     @Inject
     abstract fun getWorkerExecutor(): WorkerExecutor
@@ -28,7 +34,7 @@ abstract class GenerateMappingsTask : DefaultTask() {
     fun generate() {
         getWorkerExecutor().noIsolation().submit(GenerateMappingsAction::class.java) { params ->
             params.output.set(outputFile)
-            params.mappings.set(getMappings())
+            params.mappings.set(if (mixin) getMappingsMixin() else getMappings())
             params.reverse.set(reverse)
         }
     }
