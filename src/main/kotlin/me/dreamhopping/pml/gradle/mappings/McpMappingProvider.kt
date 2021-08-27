@@ -159,9 +159,9 @@ class McpMappingProvider(
                 for (line in reader.lines()) {
                     val parts = line.split(" ")
                     when (parts[0]) {
-                        "CL:" -> mappings.classes[parts[1]] = parts[2]
-                        "FD:" -> mappings.fields[parts[1]] = parts[2]
-                        "MD:" -> mappings.methods["${parts[1]} ${parts[2]}"] = parts[3] + " " + parts[4]
+                        "CL:" -> mixinMappings.classes[parts[1]] = parts[2]
+                        "FD:" -> mixinMappings.fields[parts[1]] = parts[2]
+                        "MD:" -> mixinMappings.methods["${parts[1]} ${parts[2]}"] = parts[3] + " " + parts[4]
                     }
                 }
             }
