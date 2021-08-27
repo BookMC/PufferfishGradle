@@ -80,7 +80,6 @@ class McpMappingProvider(
                         "CL:" -> mappings.classes[parts[1]] = parts[2]
                         "FD:" -> mappings.fields[parts[1]] = parts[2].extractName(fields)
                         "MD:" -> {
-                            // val owner = parts[1].substringBeforeLast('/')
                             val srgName = parts[3].extractName(emptyMap())
                             val deobfName = methods[srgName] ?: srgName
                             mappings.methods["${parts[1]}${parts[2]}"] = deobfName
@@ -143,13 +142,16 @@ class McpMappingProvider(
         haveMixinMappingsBeenLoaded = true
 
         if (!is13) {
-            loadSrgMixin(project, mcVersion)
+            loadSrgMixin(project, mcVersion, csvZip)
         } else {
             loadMcpConfigMixin(project, mcVersion, csvZip)
         }
     }
 
-    private fun loadSrgMixin(project: Project, mcVersion: String) {
+    private fun loadSrgMixin(project: Project, mcVersion: String, csv: File) {
+        val (fields, methodInfo) = csv.loadCsvData()
+        val (methods, _) = methodInfo
+
         val path = buildMavenPath(MCP_GROUP, "mcp", mcVersion, "srg", "zip")
         val srgZip = File(project.repoDir, path)
         download("https://maven.minecraftforge.net/$path", srgZip)
@@ -160,8 +162,17 @@ class McpMappingProvider(
                     val parts = line.split(" ")
                     when (parts[0]) {
                         "CL:" -> mixinMappings.classes[parts[1]] = parts[2]
-                        "FD:" -> mixinMappings.fields[parts[1]] = parts[2]
-                        "MD:" -> mixinMappings.methods["${parts[1]} ${parts[2]}"] = parts[3] + " " + parts[4]
+                        "FD:" -> {
+                            val owner = parts[2].substringBeforeLast('/')
+                            val name = parts[2].extractName(fields)
+                            mappings.fields[parts[1]] = "$owner/$name"
+                        }
+                        "MD:" -> {
+                            val owner = parts[3].substringBeforeLast('/')
+                            val srgName = parts[3].extractName(emptyMap())
+                            val deobfName = methods[srgName] ?: srgName
+                            mappings.methods["${parts[1]} ${parts[2]}"] = "$owner/$deobfName ${parts[4]}"
+                        }
                     }
                 }
             }
@@ -183,9 +194,16 @@ class McpMappingProvider(
                     if (line.startsWith('\t') || line.startsWith(' ')) {
                         val parts = line.trim().split(" ")
                         if (parts.size == 3) {
-                            mixinMappings.methods["$currentClass/${parts[0]} ${parts[1]}"] = "${mixinMappings.classes[currentClass]}/${methods[parts[2]] ?: parts[2]} ${mapDesc(parts[1], mixinMappings.classes)}"
+                            mixinMappings.methods["$currentClass/${parts[0]} ${parts[1]}"] =
+                                "${mixinMappings.classes[currentClass]}/${methods[parts[2]] ?: parts[2]} ${
+                                    mapDesc(
+                                        parts[1],
+                                        mixinMappings.classes
+                                    )
+                                }"
                         } else {
-                            mixinMappings.fields["$currentClass/${parts[0]}"] = "${mixinMappings.classes[currentClass]}/${parts[1]}"
+                            mixinMappings.fields["$currentClass/${parts[0]}"] =
+                                "${mixinMappings.classes[currentClass]}/${parts[1]}"
                         }
                     } else {
                         val parts = line.split(" ")
