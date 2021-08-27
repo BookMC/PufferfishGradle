@@ -452,7 +452,7 @@ object TargetConfigurator {
             null
         } ?: fabricManifestFile.let {
             // Manifest file is corrupted or not up-to-date - redownload and try again.
-            it.redownloadVersionManifest()
+            it.redownloadVersionManifest(FABRIC_MANIFEST_URL)
             it.findVersionJsonUrl(version, type)
         } ?: error("Invalid version $version")
     }
