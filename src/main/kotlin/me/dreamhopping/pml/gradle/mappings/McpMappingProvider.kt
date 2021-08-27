@@ -165,13 +165,13 @@ class McpMappingProvider(
                         "FD:" -> {
                             val owner = parts[2].substringBeforeLast('/')
                             val name = parts[2].extractName(fields)
-                            mappings.fields[parts[1]] = "$owner/$name"
+                            mixinMappings.fields[parts[1]] = "$owner/$name"
                         }
                         "MD:" -> {
                             val owner = parts[3].substringBeforeLast('/')
                             val srgName = parts[3].extractName(emptyMap())
                             val deobfName = methods[srgName] ?: srgName
-                            mappings.methods["${parts[1]} ${parts[2]}"] = "$owner/$deobfName ${parts[4]}"
+                            mixinMappings.methods["${parts[1]} ${parts[2]}"] = "$owner/$deobfName ${parts[4]}"
                         }
                     }
                 }
