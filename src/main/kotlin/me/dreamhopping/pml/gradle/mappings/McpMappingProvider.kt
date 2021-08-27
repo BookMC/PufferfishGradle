@@ -161,7 +161,7 @@ class McpMappingProvider(
                     when (parts[0]) {
                         "CL:" -> mappings.classes[parts[1]] = parts[2]
                         "FD:" -> mappings.fields[parts[1]] = parts[2]
-                        "MD:" -> mappings.methods["${parts[1]}${parts[2]}"] = parts[3] + " " + parts[4]
+                        "MD:" -> mappings.methods["${parts[1]} ${parts[2]}"] = parts[3] + " " + parts[4]
                     }
                 }
             }
@@ -169,7 +169,7 @@ class McpMappingProvider(
     }
 
     private fun loadMcpConfigMixin(project: Project, mcVersion: String, csv: File) {
-        val (fields, methodInfo) = csv.loadCsvData()
+        val (_, methodInfo) = csv.loadCsvData()
         val (methods, _) = methodInfo
 
         val path = buildMavenPath(MCP_GROUP, "mcp_config", mcVersion, extension = "zip")
@@ -183,14 +183,14 @@ class McpMappingProvider(
                     if (line.startsWith('\t') || line.startsWith(' ')) {
                         val parts = line.trim().split(" ")
                         if (parts.size == 3) {
-                            mappings.methods["$currentClass/${parts[0]}${parts[1]}"] = methods[parts[2]] ?: parts[2]
+                            mixinMappings.methods["$currentClass/${parts[0]} ${parts[1]}"] = "${mixinMappings.classes[currentClass]}/${methods[parts[2]] ?: parts[2]} ${mapDesc(parts[1], mixinMappings.classes)}"
                         } else {
-                            mappings.fields["$currentClass/${parts[0]}"] = "$currentClass/${parts[1]}"
+                            mixinMappings.fields["$currentClass/${parts[0]}"] = "${mixinMappings.classes[currentClass]}/${parts[1]}"
                         }
                     } else {
                         val parts = line.split(" ")
                         currentClass = parts[0]
-                        mappings.classes[parts[0]] = parts[1]
+                        mixinMappings.classes[parts[0]] = parts[1]
                     }
                 }
             }

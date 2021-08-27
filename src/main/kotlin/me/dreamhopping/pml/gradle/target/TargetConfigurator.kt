@@ -366,6 +366,9 @@ object TargetConfigurator {
     fun setUpJarTasks(project: Project, target: TargetData) {
         val set = project.sourceSets.maybeCreate(target.sourceSetName)
 
+        val configuration = project.configurations.maybeCreate(target.sourceSetName + "AnnotationProcessor")
+        set.annotationProcessorPath += configuration
+
         project.tasks.register("reobf${set.jarTaskName}", ApplyMappingsJarTask::class.java) {
             it.group = "build"
             it.dependsOn(set.jarTaskName, target.reverseGenerateMappingsName)

@@ -1,5 +1,6 @@
 package me.dreamhopping.pml.gradle.data.mappings
 
+import me.dreamhopping.pml.gradle.util.mapDesc
 import java.io.Serializable
 
 data class Mappings(
@@ -54,7 +55,7 @@ data class Mappings(
             val desc = nameDesc.substring(nameDesc.indexOf('('))
             val name = nameDesc.removeSuffix(desc)
             val reverseClassName = classes[className] ?: className
-            reverseMethods["$reverseClassName/${it.value}${mapDesc(desc)}"] = name
+            reverseMethods["$reverseClassName/${it.value}${mapDesc(desc, classes)}"] = name
         }
         classes.forEach {
             reversedClasses[it.value] = it.key
@@ -68,27 +69,6 @@ data class Mappings(
         methods = reverseMethods
         classes = reversedClasses
         fields = reversedFields
-    }
-
-    private fun mapDesc(desc: String): String {
-        val suffix = desc.substring(desc.lastIndexOf(')'))
-        val prefix = desc.substring(desc.indexOf('('), 1)
-
-        val parts = desc.removePrefix(prefix)
-            .removeSuffix(suffix)
-            .split(";")
-            .map {
-                val index = it.indexOf('L')
-                if (index == -1) {
-                    it
-                } else {
-                    it.substring(index + 1).let { clazz ->
-                        it.replace(clazz, classes[clazz] ?: clazz)
-                    }
-                }
-            }
-
-        return "$prefix${parts.joinToString(";")}$suffix"
     }
 
     companion object {
