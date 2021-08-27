@@ -35,6 +35,9 @@ import java.io.File
 object TargetConfigurator {
     private const val VERSION_MANIFEST_PATH = "versions/manifest.json"
     private const val VERSION_MANIFEST_URL = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+    private const val FABRIC_MANIFEST_URL =
+        "https://maven.fabricmc.net/net/minecraft/experimental_versions.json"
+    private const val FABRIC_VERSION_MANIFEST_PATH = "versions/fabric-manifest.json"
     private val readOnlyProjects = hashSetOf<Project>()
 
     fun configureTarget(project: Project, target: TargetData, parent: UserData, addDefaultMaps: Boolean) {
@@ -431,7 +434,9 @@ object TargetConfigurator {
 
     private fun Project.getVersionJsonUrl(version: String, type: String? = null): String {
         val manifestFile = dataFile(VERSION_MANIFEST_PATH)
+        val fabricManifestFile = dataFile(FABRIC_VERSION_MANIFEST_PATH)
         if (!manifestFile.exists()) manifestFile.redownloadVersionManifest()
+        if (!fabricManifestFile.exists()) fabricManifestFile.redownloadVersionManifest(FABRIC_MANIFEST_URL)
         return try {
             manifestFile.findVersionJsonUrl(version, type)
         } catch (ex: JsonParseException) {
@@ -440,8 +445,16 @@ object TargetConfigurator {
             // Manifest file is corrupted or not up-to-date - redownload and try again.
             it.redownloadVersionManifest()
             it.findVersionJsonUrl(version, type)
-        }
-        ?: error("Invalid version $version")
+            // If this is null lets give fabric a chance
+        } ?: try {
+            fabricManifestFile.findVersionJsonUrl(version, type)
+        } catch (ex: JsonParseException) {
+            null
+        } ?: fabricManifestFile.let {
+            // Manifest file is corrupted or not up-to-date - redownload and try again.
+            it.redownloadVersionManifest()
+            it.findVersionJsonUrl(version, type)
+        } ?: error("Invalid version $version")
     }
 
     private fun File.findVersionJsonUrl(version: String, releaseType: String?) =
@@ -449,7 +462,7 @@ object TargetConfigurator {
             .find { it["id"].asString == version && releaseType?.let { r -> it["type"].asString == r } ?: true }
             ?.let { it["url"].asString }
 
-    private fun File.redownloadVersionManifest() = download(VERSION_MANIFEST_URL, this, ignoreInitialState = true)
+    private fun File.redownloadVersionManifest(url: String = VERSION_MANIFEST_URL) = download(url, this, ignoreInitialState = true)
 
     private val TargetData.versionJsonPath get() = "versions/$version/manifest.json"
     private val TargetData.sourceSetName get() = "mc$version"
