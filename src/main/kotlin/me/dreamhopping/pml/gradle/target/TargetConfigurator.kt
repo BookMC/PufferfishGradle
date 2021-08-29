@@ -306,7 +306,7 @@ object TargetConfigurator {
               T : Task {
         val set = task.project.sourceSets.maybeCreate(sourceSetName)
 
-        if (client) task.dependsOn(extractNativesName, downloadAssetsName)
+        if (client) task.dependsOn(extractNativesName, downloadAssetsName, generateMappingsName)
         task.dependsOn(set.classesTaskName)
         task.args = listOf()
         if (client) {
@@ -322,7 +322,9 @@ object TargetConfigurator {
             "PG_IS_SERVER" to (!client).toString(),
             "PG_ASSET_INDEX" to versionJson.assets,
             "PG_ASSETS_DIR" to task.project.dataFile("assets").absolutePath,
-            "PG_MAIN_CLASS" to if (client) clientMainClass else serverMainClass
+            "PG_MAIN_CLASS" to if (client) clientMainClass else serverMainClass,
+            "PG_MAPPINGS_FILE" to ((project.tasks.getByName(generateMappingsName) as GenerateMappingsTask).outputFile?.absolutePath
+                ?: error("Failed to find generated mappings"))
         )
         task.mainClass = Start::class.java.name
     }
@@ -462,7 +464,8 @@ object TargetConfigurator {
             .find { it["id"].asString == version && releaseType?.let { r -> it["type"].asString == r } ?: true }
             ?.let { it["url"].asString }
 
-    private fun File.redownloadVersionManifest(url: String = VERSION_MANIFEST_URL) = download(url, this, ignoreInitialState = true)
+    private fun File.redownloadVersionManifest(url: String = VERSION_MANIFEST_URL) =
+        download(url, this, ignoreInitialState = true)
 
     private val TargetData.versionJsonPath get() = "versions/$version/manifest.json"
     private val TargetData.sourceSetName get() = "mc$version"

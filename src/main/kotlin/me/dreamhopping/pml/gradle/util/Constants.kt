@@ -1,3 +1,3 @@
 package me.dreamhopping.pml.gradle.util
 
-const val LOADER_CONFIG = "minecraft"
+const val LOADER_CONFIG = "multiversion"
