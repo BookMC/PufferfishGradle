@@ -272,6 +272,7 @@ object TargetConfigurator {
             project.dependencies.add(sourceSet.implementationConfigurationName, parent.mainSourceSet.runtimeClasspath)
 
             val loaderConfig = project.configurations.maybeCreate(LOADER_CONFIG)
+            val remapConfig = project.configurations.maybeCreate(REMAP_CONFIG)
             val implementationConfig = project.configurations.getByName(sourceSet.implementationConfigurationName)
 
             loaderConfig.dependencies.forEach {
@@ -281,6 +282,17 @@ object TargetConfigurator {
                         "name" to it.name,
                         "version" to it.version,
                         "classifier" to sourceSet.name
+                    )
+                )
+            }
+
+            remapConfig.dependencies.forEach {
+                project.dependencies.add(
+                    implementationConfig.name, mapOf(
+                        "group" to it.group,
+                        "name" to it.name,
+                        "version" to it.version,
+                        "classifier" to sourceSet.name + "-dev"
                     )
                 )
             }
@@ -331,6 +343,7 @@ object TargetConfigurator {
 
     fun setUpGlobalTasks(project: Project, data: UserData) {
         val loaderConfig = project.configurations.maybeCreate(LOADER_CONFIG)
+        val remapConfig = project.configurations.maybeCreate(REMAP_CONFIG)
         val setupTask = project.tasks.register("setup") {
             it.group = "minecraft"
         }
@@ -339,7 +352,7 @@ object TargetConfigurator {
         }
         project.afterEvaluate {
             project.configurations.getByName(data.mainSourceSet.implementationConfigurationName)
-                .extendsFrom(loaderConfig)
+                .extendsFrom(loaderConfig, remapConfig)
             setupTask.configure { task ->
                 task.dependsOn(*data.targets.map { it.setupName }.toTypedArray())
             }
@@ -389,7 +402,7 @@ object TargetConfigurator {
             it.finalizedBy("reobf${set.jarTaskName}")
             it.from(set.output)
             it.from(project.sourceSets.getByName("main").output)
-            it.archiveClassifier.set("unmapped-${set.name}")
+            it.archiveClassifier.set("${set.name}-dev")
             it.group = "build"
         }
 
