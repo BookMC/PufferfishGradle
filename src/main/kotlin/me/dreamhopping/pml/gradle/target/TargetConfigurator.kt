@@ -384,7 +384,7 @@ object TargetConfigurator {
     fun setUpJarTasks(project: Project, target: TargetData) {
         val set = project.sourceSets.maybeCreate(target.sourceSetName)
 
-        val configuration = project.configurations.maybeCreate(target.sourceSetName + "AnnotationProcessor")
+        val configuration = project.configurations.maybeCreate(set.annotationProcessorConfigurationName)
         set.annotationProcessorPath += configuration
 
         project.tasks.register("reobf${set.jarTaskName}", ApplyMappingsJarTask::class.java) {

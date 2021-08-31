@@ -1,7 +1,7 @@
 plugins {
     id "java-gradle-plugin"
     id "org.jetbrains.kotlin.jvm" version "1.5.21"
-    id "org.bookmc.buildtools" version "0.3.3+build.15"
+    id "org.bookmc.buildtools" version "0.3.7+build.28"
     id "maven-publish"
 }
 
@@ -19,7 +19,7 @@ ext {
 }
 
 group "me.dreamhopping.pml"
-version "3.10.0+${buildNumber ? "build.$buildNumber" : "local"}"
+version "3.11.0+${buildNumber ? "build.$buildNumber" : "local"}"
 
 sourceSets {
     runtime {
