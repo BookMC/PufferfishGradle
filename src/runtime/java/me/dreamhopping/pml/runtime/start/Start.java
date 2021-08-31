@@ -55,6 +55,8 @@ public class Start {
             addArgument(arguments.getLiteralArguments(), "--uuid", shouldAuthenticate, uuid);
             addArgument(arguments.getLiteralArguments(), "--accessToken", shouldAuthenticate, accessToken);
             addArgument(arguments.getLiteralArguments(), "--userProperties", () -> "{}");
+        } else {
+            addArgument(arguments.getLiteralArguments(), "--no-gui", false, "");
         }
 
         String mainClass = System.getenv("PG_MAIN_CLASS");
@@ -88,7 +90,11 @@ public class Start {
                 }
             }
             list.add(arg);
-            list.add(value.get());
+
+            String v = value.get();
+            if (!v.isEmpty()) {
+                list.add(v);
+            }
         }
     }
 }
