@@ -56,7 +56,7 @@ public class Start {
             addArgument(arguments.getLiteralArguments(), "--accessToken", shouldAuthenticate, accessToken);
             addArgument(arguments.getLiteralArguments(), "--userProperties", () -> "{}");
         } else {
-            addArgument(arguments.getLiteralArguments(), "--no-gui", false, "");
+            addArgument(arguments.getLiteralArguments(), "--nogui", false, "");
         }
 
         String mainClass = System.getenv("PG_MAIN_CLASS");
