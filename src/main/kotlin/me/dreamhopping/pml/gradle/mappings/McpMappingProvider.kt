@@ -161,17 +161,17 @@ class McpMappingProvider(
                 for (line in reader.lines()) {
                     val parts = line.split(" ")
                     when (parts[0]) {
-                        "CL:" -> mixinMappings.classes[parts[1]] = parts[2]
+                        "CL:" -> mixinMappings.classes[parts[2]] = parts[1]
                         "FD:" -> {
                             val owner = parts[2].substringBeforeLast('/')
                             val name = parts[2].extractName(fields)
-                            mixinMappings.fields[parts[1]] = "$owner/$name"
+                            mixinMappings.fields["$owner/$name"] = parts[1]
                         }
                         "MD:" -> {
                             val owner = parts[3].substringBeforeLast('/')
                             val srgName = parts[3].extractName(emptyMap())
                             val deobfName = methods[srgName] ?: srgName
-                            mixinMappings.methods["${parts[1]} ${parts[2]}"] = "$owner/$deobfName ${parts[4]}"
+                            mixinMappings.methods["$owner/$deobfName ${parts[4]}"] = "${parts[1]} ${parts[2]}"
                         }
                     }
                 }
@@ -190,26 +190,30 @@ class McpMappingProvider(
         ZipFile(mcpConfigZip).use { zip ->
             zip.getInputStream(zip.getEntry("config/joined.tsrg")).bufferedReader().use { reader ->
                 var currentClass = ""
+                val methodsToMap = LinkedHashMap<String, String>()
                 for (line in reader.lines()) {
                     if (line.startsWith('\t') || line.startsWith(' ')) {
                         val parts = line.trim().split(" ")
                         if (parts.size == 3) {
-                            mixinMappings.methods["$currentClass/${parts[0]} ${parts[1]}"] =
-                                "${mixinMappings.classes[currentClass]}/${methods[parts[2]] ?: parts[2]} ${
-                                    mapDesc(
-                                        parts[1],
-                                        mixinMappings.classes
-                                    )
-                                }"
+                            methodsToMap["$currentClass/${methods[parts[2]] ?: parts[2]} ${parts[1]}"] =
+                                "${mixinMappings.classes[currentClass] ?: currentClass}/${parts[0]} ${parts[1]}"
                         } else {
-                            mixinMappings.fields["$currentClass/${parts[0]}"] =
-                                "${mixinMappings.classes[currentClass]}/${parts[1]}"
+                            mixinMappings.fields["$currentClass/${parts[1]}"] =
+                                "${mixinMappings.classes[currentClass] ?: currentClass}/${parts[0]}"
                         }
                     } else {
                         val parts = line.split(" ")
-                        currentClass = parts[0]
-                        mixinMappings.classes[parts[0]] = parts[1]
+                        currentClass = parts[1]
+                        mixinMappings.classes[parts[1]] = parts[0]
                     }
+                }
+
+                val invertedClassMappings = mixinMappings.classes.invert()
+                methodsToMap.entries.forEach {
+                    val key = it.key
+                    val (ownerName, desc) = key.split(" ")
+                    val mappedDesc = mapDesc(desc, invertedClassMappings)
+                    mixinMappings.methods["$ownerName $mappedDesc"] = it.value
                 }
             }
         }
