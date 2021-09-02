@@ -318,7 +318,7 @@ object TargetConfigurator {
               T : Task {
         val set = task.project.sourceSets.maybeCreate(sourceSetName)
 
-        if (client) task.dependsOn(extractNativesName, downloadAssetsName, generateMappingsName)
+        if (client) task.dependsOn(extractNativesName, downloadAssetsName, reverseGenerateMappingsName)
         task.dependsOn(set.classesTaskName)
         task.args = listOf()
         if (client) {
@@ -335,7 +335,7 @@ object TargetConfigurator {
             "PG_ASSET_INDEX" to versionJson.assets,
             "PG_ASSETS_DIR" to task.project.dataFile("assets").absolutePath,
             "PG_MAIN_CLASS" to if (client) clientMainClass else serverMainClass,
-            "PG_MAPPINGS_FILE" to ((project.tasks.getByName(generateMappingsName) as GenerateMappingsTask).outputFile?.absolutePath
+            "PG_MAPPINGS_FILE" to ((project.tasks.getByName(reverseGenerateMappingsName) as GenerateMappingsTask).outputFile?.absolutePath
                 ?: error("Failed to find generated mappings"))
         )
         task.mainClass = Start::class.java.name
