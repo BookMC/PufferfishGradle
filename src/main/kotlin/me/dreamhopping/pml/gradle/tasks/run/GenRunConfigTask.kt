@@ -132,7 +132,7 @@ abstract class GenRunConfigTask : DefaultTask(), IRunTask {
 
     private fun findWorkspaceFile(): File {
         var file: File? = null
-        var root = project.projectDir.canonicalFile
+        var root = project.rootProject.projectDir.canonicalFile
         while (file == null && root != project.rootDir.canonicalFile.parentFile) {
             file = File(root, ".idea/workspace.xml")
             if (!file.exists()) {
