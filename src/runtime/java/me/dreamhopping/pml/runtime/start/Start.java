@@ -2,7 +2,10 @@ package me.dreamhopping.pml.runtime.start;
 
 import me.dreamhopping.pml.runtime.start.args.StartArgs;
 import me.dreamhopping.pml.runtime.start.auth.AuthData;
+import me.dreamhopping.pml.runtime.start.auth.GameAuthenticator;
 import me.dreamhopping.pml.runtime.start.auth.io.IOUtil;
+import me.dreamhopping.pml.runtime.start.auth.microsoft.MicrosoftGameAuthenticator;
+import me.dreamhopping.pml.runtime.start.auth.mojang.MojangGameAuthenticator;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,13 +41,20 @@ public class Start {
 
             addArgument(arguments.getLiteralArguments(), "--assetsDir", assetDir::getPath);
 
-            boolean shouldAuthenticate = arguments.getAuthUsername() != null && arguments.getAuthPassword() != null;
+            boolean shouldAuthenticate = arguments.getAuthUsername() != null && arguments.getAuthPassword() != null || arguments.isMicrosoft();
             String accessToken = "PufferfishGradle";
-            String username = "Player";
-            String uuid = new UUID(0, 0).toString();
+            String username = "Developer";
+            String uuid = UUID.randomUUID().toString();
 
             if (shouldAuthenticate) {
-                AuthData data = AuthData.authenticate(arguments.getAuthUsername(), arguments.getAuthPassword());
+                GameAuthenticator authenticator;
+                if (arguments.isMicrosoft()) {
+                    authenticator = new MicrosoftGameAuthenticator();
+                } else {
+                    authenticator = new MojangGameAuthenticator(arguments.getAuthUsername(), arguments.getAuthPassword());
+                }
+
+                AuthData data = authenticator.authenticate();
 
                 accessToken = data.getAccessToken();
                 username = data.getUsername();

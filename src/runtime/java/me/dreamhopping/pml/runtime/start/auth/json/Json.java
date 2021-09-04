@@ -9,9 +9,12 @@ public class Json {
     public static Object parse(String json, IntHolder pos) {
         skipWhitespace(json, pos);
         switch (json.charAt(pos.value)) {
-            case '{': return parseObject(json, pos);
-            case '[': return parseArray(json, pos);
-            case '"': return parseString(json, pos);
+            case '{':
+                return parseObject(json, pos);
+            case '[':
+                return parseArray(json, pos);
+            case '"':
+                return parseString(json, pos);
             case 't':
                 pos.value += 4;
                 return true;
@@ -103,7 +106,7 @@ public class Json {
             return '"' + ((String) value) + '"';
         } else if (value == null) {
             return "null";
-        }  else if (value instanceof Number) {
+        } else if (value instanceof Number) {
             return value.toString();
         } else if (value instanceof Map) {
             StringBuilder builder = new StringBuilder("{");

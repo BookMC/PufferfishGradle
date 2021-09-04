@@ -7,11 +7,13 @@ public class StartArgs {
     private final List<String> literalArguments;
     private final String authUsername;
     private final String authPassword;
+    private final boolean microsoft;
 
-    public StartArgs(List<String> literalArguments, String authUsername, String authPassword) {
+    public StartArgs(List<String> literalArguments, String authUsername, String authPassword, boolean microsoft) {
         this.literalArguments = literalArguments;
         this.authUsername = authUsername;
         this.authPassword = authPassword;
+        this.microsoft = microsoft;
     }
 
     public static StartArgs parse(String[] args) {
@@ -19,19 +21,15 @@ public class StartArgs {
         List<String> literalArgs = new ArrayList<>();
         String username = null;
         String password = null;
+        boolean microsoft = false;
 
         for (String arg : args) {
             if (type == 0) {
                 switch (arg) {
-                    case "--username":
-                        type = 1;
-                        break;
-                    case "--password":
-                        type = 2;
-                        break;
-                    default:
-                        literalArgs.add(arg);
-                        break;
+                    case "--username" -> type = 1;
+                    case "--password" -> type = 2;
+                    case "--microsoft" -> microsoft = true;
+                    default -> literalArgs.add(arg);
                 }
             } else if (type == 1) {
                 username = arg;
@@ -52,7 +50,7 @@ public class StartArgs {
             password = null;
         }
 
-        return new StartArgs(literalArgs, username, password);
+        return new StartArgs(literalArgs, username, password, microsoft);
     }
 
     public List<String> getLiteralArguments() {
@@ -65,5 +63,9 @@ public class StartArgs {
 
     public String getAuthPassword() {
         return authPassword;
+    }
+
+    public boolean isMicrosoft() {
+        return microsoft;
     }
 }
