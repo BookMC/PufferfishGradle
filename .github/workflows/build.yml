@@ -1,23 +1,16 @@
 name: Build and test
 
-on:
-  push:
+on: [pull_request, push]
 jobs:
-  build_test_and_publish_jdk16:
+  build_test_jdk17:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Generate build number
-        id: buildnumber
-        uses: einaregilsson/build-number@v3
-        with:
-          token: ${{ secrets.github_token }}
-          prefix: ${{ github.ref }}
       - uses: actions/checkout@v2
-      - name: Set up JDK 16
+      - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
-          java-version: '16'
+          java-version: '17'
           distribution: 'adopt'
       - uses: actions/cache@v2
         with:
@@ -30,9 +23,5 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew publish commitWebhook
-        env:
-          MAVEN_USER: ${{ secrets.MAVEN_USER }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        run: ./gradlew :build
 
