@@ -3,7 +3,7 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
         maven {
-            url "https://maven.bookmc.org"
+            url "https://maven.bookmc.org/releases/"
         }
     }
 }

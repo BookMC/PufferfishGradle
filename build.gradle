@@ -19,7 +19,7 @@ ext {
 }
 
 group "me.dreamhopping.pml"
-version "3.13.0+${buildNumber ? "build.$buildNumber" : "local"}"
+version "3.14.0"
 
 sourceSets {
     runtime {
@@ -33,7 +33,7 @@ repositories {
         url "https://maven.fabricmc.net"
     }
     maven {
-        url "https://maven.bookmc.org"
+        url "https://maven.bookmc.org/releases/"
     }
 }
 
