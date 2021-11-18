@@ -277,7 +277,7 @@ class McpMappingProvider(
     }
 
     companion object {
-        private const val VERSIONS_URL = "http://export.mcpbot.bspk.rs/versions.json"
+        private const val VERSIONS_URL = "http://maven.minecraftforge.net/de/oceanlabs/mcp/versions.json"
         private const val MCP_GROUP = "de.oceanlabs.mcp"
         private var alreadyRetried = false
 
