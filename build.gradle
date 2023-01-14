@@ -1,7 +1,6 @@
 plugins {
     id "java-gradle-plugin"
     id "org.jetbrains.kotlin.jvm" version "1.5.21"
-    id "org.bookmc.buildtools" version "0.3.8+build.29"
     id "maven-publish"
 }
 
@@ -123,23 +122,6 @@ compileTestKotlin {
 }
 
 publishing {
-    repositories {
-        maven {
-            def env = System.getenv()
-
-            boolean isEnvVarsAvailable = env.containsKey("MAVEN_USER") && env.containsKey("MAVEN_PASSWORD")
-
-            if (isEnvVarsAvailable) {
-                credentials {
-                    username env.get("MAVEN_USER")
-                    password env.get("MAVEN_PASSWORD")
-                }
-            }
-
-            url = local || !isEnvVarsAvailable ? "$buildDir/repository" : "https://maven.bookmc.org/releases/"
-        }
-    }
-
     publications {
         //noinspection GroovyAssignabilityCheck
         mavenJava(MavenPublication) {
