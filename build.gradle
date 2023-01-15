@@ -31,9 +31,6 @@ repositories {
     maven {
         url "https://maven.fabricmc.net"
     }
-    maven {
-        url "https://maven.bookmc.org/releases/"
-    }
 }
 
 configurations {
@@ -57,7 +54,6 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation "net.fabricmc:tiny-mappings-parser:0.3.0+build.17"
-    implementation "org.bookmc:srg-processor:2.0.1+jdk.16"
 }
 
 test {
